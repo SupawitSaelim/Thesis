@@ -1,7 +1,6 @@
 import re
 from sklearn.ensemble import RandomForestClassifier
 
-# ตัวอย่าง config จาก show running-config
 config = """
 version 15.2
 hostname Switch
@@ -25,7 +24,6 @@ line vty 5 15
 end
 """
 
-# ตัวอย่าง output จาก show ip interface brief
 ip_interface_brief = """
 Interface              IP-Address      OK? Method Status                Protocol
 Vlan1                  192.168.0.9     YES manual up                    up
@@ -36,9 +34,7 @@ FastEthernet0/4        unassigned      YES unset  up                    down
 FastEthernet0/5        unassigned      YES unset  up                    down
 """
 
-# ตรวจสอบ password
 passwords = re.findall(r'password\s+(\S+)', config)
-
 insecure_passwords = ['cisco', 'enable', 'switch', 'router', 'admin']
 
 insecure_password_flag = 0
@@ -47,14 +43,12 @@ for password in passwords:
         insecure_password_flag = 1
         print(f"Warning: Insecure password '{password}' found! Please change it.")
 
-# ตรวจสอบการเข้ารหัส password
 if "no service password-encryption" in config:
     password_encryption_flag = 1  
     print("Warning: Password encryption is not enabled. Please enable 'service password-encryption'.")
 else:
     password_encryption_flag = 0  
 
-# ตรวจสอบสถานะของพอร์ตจาก show ip interface brief
 down_ports = re.findall(r'^\s*(\S+)\s+\S+\s+\S+\s+\S+\s+(down)', ip_interface_brief, re.MULTILINE)
 down_ports_flag = 1 if down_ports else 0  # 1 ถ้ามีพอร์ต down, 0 ถ้าไม่มี
 
@@ -62,7 +56,6 @@ if down_ports:
     down_ports_list = [port[0] for port in down_ports]  # ดึงชื่อพอร์ตที่อยู่ในสถานะ down
     print(f"Warning: The following ports are down: {', '.join(down_ports_list)}. Please consider shutting them down for security.")
 
-# ตรวจสอบการตั้งค่า exec-timeout ใน line vty และ line con
 exec_timeout_flag = 0  # 0 = safe, 1 = unsafe
 if not re.search(r'line con 0\s+.*?exec-timeout\s+\d+\s+\d+', config, re.DOTALL):
     exec_timeout_flag = 1
@@ -71,7 +64,6 @@ if not re.search(r'line vty \d+ \d+\s+.*?exec-timeout\s+\d+\s+\d+', config, re.D
     exec_timeout_flag = 1
     print("Warning: 'exec-timeout' not set for line vty. Please consider adding 'exec-timeout 3'.")
 
-# ตรวจสอบการตั้งค่า SSH ใน line vty
 vty_config = re.findall(r'line vty \d+ \d+\s+.*?transport input (\S+)', config, re.DOTALL)
 
 ssh_flag = 1  # 1 ถ้าใช้ ssh, 0 ถ้าใช้ telnet หรือ all
